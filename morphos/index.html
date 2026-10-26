@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>MORPHOS 3D // Particle Metamorphosis Engine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Space+Grotesk:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="webgl"></div>
+  <div class="overlay-fx"></div>
+
+  <!-- Intro -->
+  <div id="intro" class="intro">
+    <div class="intro-inner">
+      <div class="badge">REALTIME PARTICLE ENGINE · WEBGL</div>
+      <h1 class="glitch-title" data-text="MORPHOS">MORPHOS</h1>
+      <p class="intro-sub">
+        15.000 partikel hidup yang bisa berubah menjadi apa pun — planet, galaksi DNA,
+        hati, papan gelombang, sampai <b>kata-katamu sendiri</b> dalam bentuk 3D.
+      </p>
+      <button id="btn-start" class="btn-start">BOOT ENGINE ▸</button>
+      <div class="intro-hint">
+        <span>DRAG</span> putar &nbsp;·&nbsp; <span>SCROLL</span> zoom &nbsp;·&nbsp; <span>KLIK</span> burst &nbsp;·&nbsp; <span>KURSOR</span> tolak partikel
+      </div>
+    </div>
+  </div>
+
+  <!-- HUD -->
+  <div id="hud" class="hud hidden">
+    <header class="hud-top">
+      <div class="brand">
+        <div class="brand-name">MORPHOS<span>//3D</span></div>
+        <div class="brand-sub">METAMORPHOSIS ENGINE v1.0</div>
+      </div>
+      <div class="telemetry">
+        <div class="tele"><b id="fps">60</b><i>FPS</i></div>
+        <div class="tele"><b id="pc">15.000</b><i>PARTICLES</i></div>
+        <div class="tele"><b id="shapeName">SPHERE</b><i>STATE</i></div>
+      </div>
+      <button id="btn-sound" class="hud-btn">🔇 SOUND OFF</button>
+    </header>
+
+    <!-- Shape selector -->
+    <aside class="panel panel-left">
+      <div class="panel-title">MORPH TARGET</div>
+      <button class="shape-btn active" data-shape="sphere"><em>01</em><span>SPHERE<sub>orbital shell</sub></span></button>
+      <button class="shape-btn" data-shape="galaxy"><em>02</em><span>GALAXY<sub>4 spiral arms</sub></span></button>
+      <button class="shape-btn" data-shape="dna"><em>03</em><span>DNA HELIX<sub>double strand</sub></span></button>
+      <button class="shape-btn" data-shape="heart"><em>04</em><span>COSMIC HEART<sub>parametric</sub></span></button>
+      <button class="shape-btn" data-shape="knot"><em>05</em><span>TORUS KNOT<sub>p2 q3 core</sub></span></button>
+      <button class="shape-btn" data-shape="wave"><em>06</em><span>WAVE FIELD<sub>sine terrain</sub></span></button>
+      <div class="panel-divider"></div>
+      <div class="panel-title">TOOLS</div>
+      <button id="btn-burst" class="tool-btn">✦ SHOCKWAVE BURST</button>
+      <button id="btn-auto" class="tool-btn">⟳ AUTOPILOT: OFF</button>
+      <div class="panel-divider"></div>
+      <div class="panel-title">DENSITY</div>
+      <div class="density-row">
+        <button class="den-btn" data-n="6000">6K</button>
+        <button class="den-btn active" data-n="15000">15K</button>
+        <button class="den-btn" data-n="30000">30K</button>
+      </div>
+    </aside>
+
+    <!-- Palette -->
+    <aside class="panel panel-right">
+      <div class="panel-title">PALETTE</div>
+      <div class="palette">
+        <button class="pal active" data-pal="neon"   style="--a:#00f0ff;--b:#ff2bd6"></button>
+        <button class="pal" data-pal="solar"   style="--a:#ff8a00;--b:#ffee55"></button>
+        <button class="pal" data-pal="matrix"  style="--a:#00ff88;--b:#b6ff00"></button>
+        <button class="pal" data-pal="vapor"   style="--a:#ff2bd6;--b:#7b5bff"></button>
+        <button class="pal" data-pal="ice"     style="--a:#4d7cff;--b:#e8fbff"></button>
+      </div>
+      <div class="panel-divider"></div>
+      <div class="panel-title">PARTICLE SIZE</div>
+      <input id="sizeRange" class="range" type="range" min="4" max="22" value="10">
+      <div class="readout" id="sizeOut">0.10 px</div>
+      <div class="panel-divider"></div>
+      <div class="legend">
+        <div><i class="dot" style="background:var(--a)"></i> core frequency</div>
+        <div><i class="dot" style="background:var(--b)"></i> outer spectrum</div>
+      </div>
+    </aside>
+
+    <!-- Text renderer -->
+    <div class="text-lab">
+      <div class="lab-label">TEXT → 3D PARTICLES</div>
+      <div class="lab-row">
+        <input id="textInput" maxlength="16" placeholder="KETIK SESUATU..." value="MORPHOS">
+        <button id="btn-text" class="btn-render">RENDER ▸</button>
+      </div>
+    </div>
+
+    <footer class="hud-bottom">
+      <div class="status"><i class="pulse"></i><span id="status">ENGINE READY · AWAITING INPUT</span></div>
+      <div class="tip">Klik area kosong untuk shockwave · arahkan kursor ke partikel untuk menolaknya</div>
+    </footer>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
