@@ -61,5 +61,11 @@
 .status{display:flex;align-items:center;gap:9px}.pulse{width:8px;height:8px;border-radius:50%;background:#00ff88;box-shadow:0 0 12px #00ff88;animation:pl 1.4s infinite}
 @keyframes pl{50%{opacity:.35;transform:scale(.7)}}
 .tip{color:#3f4f6d}
+.switcher{display:flex;align-items:center;gap:18px}
+.switcher a{color:#ff2bd6;text-decoration:none;border:1px solid #ff2bd644;padding:6px 11px;border-radius:20px;font-size:9px;letter-spacing:.12em;transition:.2s;pointer-events:auto}
+.switcher a:hover{background:#ff2bd622;box-shadow:0 0 18px #ff2bd655}
+.panel-title.keys{margin-top:2px}
+.keys{font:9px 'JetBrains Mono';color:#41547a;line-height:1.9;letter-spacing:.06em}
+.keys b{color:#00f0ff}
 
 @media(max-width:820px){.panel-right{display:none}.panel-left{top:auto;bottom:150px;left:12px;width:172px;padding:11px}.shape-btn{padding:7px 6px}.shape-btn span{font-size:10px}.telemetry{display:none}.hud-bottom .tip{display:none}.text-lab{bottom:16px}.brand-sub{display:none}}

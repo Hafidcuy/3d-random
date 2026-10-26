@@ -13,7 +13,7 @@ const PALETTES = {
   ice:   [0x4d7cff, 0xe8fbff]
 };
 let palette = 'neon';
-const SHAPES = ['sphere', 'galaxy', 'dna', 'heart', 'knot', 'wave'];
+const SHAPES = ['sphere', 'galaxy', 'dna', 'heart', 'knot', 'wave', 'tornado', 'ring'];
 let currentShape = 'sphere';
 const mouseLocal = new THREE.Vector3(9999, 9999, 9999);
 const raycaster = new THREE.Raycaster();
@@ -160,6 +160,29 @@ function genShape(key) {
     for (let i = 0; i < N; i++) {
       const x = R(-7, 7), z = R(-7, 7);
       a[i*3] = x; a[i*3+1] = Math.sin(x * 0.7) * Math.cos(z * 0.7) * 1.5 - 1.5; a[i*3+2] = z;
+    }
+  } else if (key === 'tornado') {
+    for (let i = 0; i < N; i++) {
+      const f = i / N;
+      const ang = f * Math.PI * 14 + R(-0.4, 0.4);
+      const rad = (1 - f) * 3.3 + 0.4 + R(-0.25, 0.25);
+      a[i*3] = Math.cos(ang) * rad;
+      a[i*3+1] = (f - 0.5) * 11.5;
+      a[i*3+2] = Math.sin(ang) * rad;
+    }
+  } else if (key === 'ring') {
+    for (let i = 0; i < N; i++) {
+      if (i % 10 < 7) { // gas giant body
+        const z = Math.random() * 2 - 1, th = Math.random() * Math.PI * 2, s = Math.sqrt(1 - z * z);
+        const r = 3.1 * Math.pow(Math.random(), 0.33);
+        a[i*3] = r * s * Math.cos(th); a[i*3+1] = r * z; a[i*3+2] = r * s * Math.sin(th);
+      } else { // debris ring
+        const th = Math.random() * Math.PI * 2;
+        const r = R(4.4, 6.6);
+        a[i*3] = Math.cos(th) * r;
+        a[i*3+1] = R(-0.16, 0.16);
+        a[i*3+2] = Math.sin(th) * r;
+      }
     }
   } else if (key === 'text') {
     textPoints(a, document.getElementById('textInput').value || 'MORPHOS');
@@ -444,6 +467,22 @@ range.addEventListener('input', () => {
   sizeScale = range.value / 100;
   mat.size = sizeScale;
   document.getElementById('sizeOut').textContent = sizeScale.toFixed(2) + ' px';
+});
+
+/* ---------- KEYBOARD SHORTCUTS ---------- */
+function pickShape(key) {
+  const b = document.querySelector('.shape-btn[data-shape="' + key + '"]');
+  if (b) b.click();
+}
+addEventListener('keydown', e => {
+  if (!started) return;
+  if (document.activeElement === document.getElementById('textInput')) return;
+  const n = parseInt(e.key, 10);
+  if (n >= 1 && n <= SHAPES.length) pickShape(SHAPES[n - 1]);
+  else if (e.key === 'b' || e.key === 'B') burst();
+  else if (e.key === 'a' || e.key === 'A') document.getElementById('btn-auto').click();
+  else if (e.key === 't' || e.key === 'T') { e.preventDefault(); document.getElementById('textInput').focus(); }
+  else if (e.key === 's' || e.key === 'S') document.getElementById('btn-sound').click();
 });
 
 init();
