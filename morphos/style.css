@@ -56,6 +56,10 @@
 #textInput:focus{border-color:#00f0ff;box-shadow:0 0 22px #00f0ff33}
 .btn-render{border:0;background:linear-gradient(90deg,#00f0ff,#ff2bd6);color:#04060d;font:700 11px Orbitron;padding:0 18px;cursor:pointer;border-radius:5px;letter-spacing:.08em}
 .btn-render:hover{filter:brightness(1.2)}
+.lab-row-sub{margin-top:8px}
+.btn-ghost{flex:1;background:#0d1426;border:1px solid #1d2b4a;color:#8ea4c4;font:10px 'JetBrains Mono';padding:9px 6px;cursor:pointer;border-radius:5px;letter-spacing:.06em;transition:.2s}
+.btn-ghost:hover{border-color:#00f0ff;color:#00f0ff;background:#00f0ff14}
+.img-name{position:absolute;right:14px;margin-top:-30px;font:8px 'JetBrains Mono';color:#41547a;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 .hud-bottom{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-between;padding:16px 26px;font:10px 'JetBrains Mono';color:#67799a}
 .status{display:flex;align-items:center;gap:9px}.pulse{width:8px;height:8px;border-radius:50%;background:#00ff88;box-shadow:0 0 12px #00ff88;animation:pl 1.4s infinite}

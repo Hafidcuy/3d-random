@@ -13,6 +13,8 @@ const PALETTES = {
   ice:   [0x4d7cff, 0xe8fbff]
 };
 let palette = 'neon';
+let composer = null, bloom = null;
+let imgSrc = null, imgCol = null;
 const SHAPES = ['sphere', 'galaxy', 'dna', 'heart', 'knot', 'wave', 'tornado', 'ring'];
 let currentShape = 'sphere';
 const mouseLocal = new THREE.Vector3(9999, 9999, 9999);
@@ -43,6 +45,10 @@ function init() {
   controls.autoRotate = true;
   controls.autoRotateSpeed = 0.55;
 
+  if (document.fonts && document.fonts.load) { try { document.fonts.load('900 240px Orbitron'); } catch (e) {} }
+
+  setupBloom();
+
   scene.add(new THREE.AmbientLight(0xffffff, 0.6));
 
   group = new THREE.Group();
@@ -66,6 +72,57 @@ function init() {
   });
 
   loop();
+}
+
+/* ---------- POST FX (bloom) ---------- */
+function setupBloom() {
+  if (typeof THREE.EffectComposer === 'undefined' || typeof THREE.UnrealBloomPass === 'undefined') return;
+  try {
+    composer = new THREE.EffectComposer(renderer);
+    composer.addPass(new THREE.RenderPass(scene, camera));
+    bloom = new THREE.UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.9, 0.5, 0.22);
+    composer.addPass(bloom);
+  } catch (e) { composer = null; }
+}
+
+/* ---------- IMAGE → PARTICLES ---------- */
+function sampleImage(im) {
+  const S = 520;
+  const cv = document.createElement('canvas');
+  cv.width = cv.height = S;
+  const x = cv.getContext('2d');
+  x.clearRect(0, 0, S, S);
+  const sc = Math.min(S / im.width, S / im.height);
+  const w = im.width * sc, h = im.height * sc;
+  x.drawImage(im, (S - w) / 2, (S - h) / 2, w, h);
+  const d = x.getImageData(0, 0, S, S).data;
+  const us = [], vs = [], cs = [];
+  for (let yy = 0; yy < S; yy += 2) {
+    for (let xx = 0; xx < S; xx += 2) {
+      const i = (yy * S + xx) * 4;
+      if (d[i + 3] < 25) continue;
+      us.push(xx / S); vs.push(yy / S);
+      cs.push(d[i] / 255, d[i + 1] / 255, d[i + 2] / 255);
+    }
+  }
+  if (!us.length) return false;
+  imgSrc = { u: Float32Array.from(us), v: Float32Array.from(vs), c: Float32Array.from(cs), n: us.length };
+  return true;
+}
+
+function genImage(a) {
+  imgCol = new Float32Array(N * 3);
+  const M = imgSrc.n, W = 9.8;
+  for (let i = 0; i < N; i++) {
+    const k = (Math.random() * M) | 0;
+    const u = imgSrc.u[k], v = imgSrc.v[k];
+    a[i*3] = (u - 0.5) * W;
+    a[i*3+1] = (0.5 - v) * W;
+    a[i*3+2] = R(-0.3, 0.3);
+    imgCol[i*3]   = Math.min(1, imgSrc.c[k*3] * 1.12);
+    imgCol[i*3+1] = Math.min(1, imgSrc.c[k*3+1] * 1.12);
+    imgCol[i*3+2] = Math.min(1, imgSrc.c[k*3+2] * 1.12);
+  }
 }
 
 function makeTexture() {
@@ -186,6 +243,9 @@ function genShape(key) {
     }
   } else if (key === 'text') {
     textPoints(a, document.getElementById('textInput').value || 'MORPHOS');
+  } else if (key === 'image') {
+    if (imgSrc) genImage(a);
+    else { currentShape = 'sphere'; return genShape('sphere'); }
   }
   return a;
 }
@@ -277,14 +337,17 @@ function burst() {
   startMorph(a, 750);
 }
 
-function morphToShape(key, isText) {
+function morphToShape(key, isText, isImage) {
+  if (key === 'image' && !imgSrc) { key = 'sphere'; isImage = false; }
   currentShape = key;
   home = genShape(key);
-  paintColors(home, isText);
+  if (isImage && imgCol) col.set(imgCol);
+  else paintColors(home, isText);
   startMorph(home, 1700);
   spin = !isText;
-  document.getElementById('shapeName').textContent = (isText ? 'TEXT' : key.toUpperCase());
-  setStatus('MORPHING → ' + (isText ? 'TEXT: "' + document.getElementById('textInput').value.toUpperCase() + '"' : key.toUpperCase()));
+  const shown = isImage ? 'IMAGE' : (isText ? 'TEXT' : key.toUpperCase());
+  document.getElementById('shapeName').textContent = shown;
+  setStatus('MORPHING → ' + (isText ? 'TEXT: "' + document.getElementById('textInput').value.toUpperCase() + '"' : shown));
   sweep();
 }
 
@@ -334,6 +397,7 @@ function onResize() {
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
+  if (composer) composer.setSize(innerWidth, innerHeight);
 }
 
 function setStatus(t) { document.getElementById('status').textContent = t; }
@@ -394,7 +458,8 @@ function loop() {
   geo.attributes.position.needsUpdate = true;
   geo.attributes.color.needsUpdate = true;
   controls.update();
-  renderer.render(scene, camera);
+  if (composer) composer.render();
+  else renderer.render(scene, camera);
 }
 
 /* ---------- UI ---------- */
@@ -418,6 +483,35 @@ document.getElementById('btn-text').addEventListener('click', () => {
 });
 document.getElementById('textInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') document.getElementById('btn-text').click();
+});
+
+/* SHAREABLE LINK */
+document.getElementById('btn-share').addEventListener('click', () => {
+  const u = location.origin + location.pathname + '?t=' + encodeURIComponent(document.getElementById('textInput').value || 'MORPHOS');
+  const done = () => setStatus('LINK COPIED → KIRIM KE TEMANMU!');
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(u).then(done, () => setStatus(u));
+  else setStatus(u);
+  sweep();
+});
+
+/* IMAGE → PARTICLES */
+document.getElementById('btn-image').addEventListener('click', () => document.getElementById('fileInput').click());
+document.getElementById('fileInput').addEventListener('change', e => {
+  const f = e.target.files && e.target.files[0];
+  if (!f) return;
+  const url = URL.createObjectURL(f);
+  const im = new Image();
+  im.onload = () => {
+    if (sampleImage(im)) {
+      document.getElementById('imgName').textContent = f.name.length > 16 ? f.name.slice(0, 14) + '…' : f.name;
+      document.querySelectorAll('.shape-btn').forEach(x => x.classList.remove('active'));
+      morphToShape('image', false, true);
+      setStatus('IMAGE DIGESTED → ' + imgSrc.n + ' SAMPLE POINTS');
+    } else setStatus('GAMBAR TIDAK VALID');
+    URL.revokeObjectURL(url);
+  };
+  im.onerror = () => setStatus('GAGAL MEMBACA GAMBAR');
+  im.src = url;
 });
 
 document.getElementById('btn-burst').addEventListener('click', burst);
@@ -456,8 +550,10 @@ document.querySelectorAll('.den-btn').forEach(b => b.addEventListener('click', (
   document.querySelectorAll('.den-btn').forEach(x => x.classList.remove('active'));
   b.classList.add('active');
   buildParticles(parseInt(b.dataset.n, 10));
-  home = currentShape === 'text' ? genShape('text') : genShape(currentShape);
-  paintColors(home, currentShape === 'text');
+  const isText = currentShape === 'text', isImg = currentShape === 'image';
+  home = genShape(currentShape);
+  if (isImg && imgCol) col.set(imgCol);
+  else paintColors(home, isText);
   startMorph(home, 1400);
   setStatus('DENSITY RESAMPLED → ' + b.dataset.n + ' PARTICLES');
 }));
@@ -485,4 +581,19 @@ addEventListener('keydown', e => {
   else if (e.key === 's' || e.key === 'S') document.getElementById('btn-sound').click();
 });
 
+/* ---------- SHARED LINK (?t=) ---------- */
+const sharedText = new URLSearchParams(location.search).get('t');
+if (sharedText) {
+  document.getElementById('textInput').value = sharedText.toUpperCase().slice(0, 16);
+  document.querySelector('.intro-sub').innerHTML =
+    'Tautan ini membawa teks <b>"' + sharedText.toUpperCase().slice(0, 16) + '"</b> yang akan langsung diubah menjadi partikel 3D.';
+}
+
 init();
+
+if (sharedText) {
+  setTimeout(() => {
+    document.getElementById('btn-start').click();
+    setTimeout(() => morphToShape('text', true), 350);
+  }, 500);
+}
