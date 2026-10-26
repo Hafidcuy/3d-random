@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>CYBER DIMENSION 3D // Quantum Nexus</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Space+Grotesk:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- 3D Canvas Container -->
+  <div id="webgl-container"></div>
+
+  <!-- Scanline & Vignette Overlay -->
+  <div class="crt-overlay"></div>
+  <div class="vignette"></div>
+
+  <!-- HUD Interface -->
+  <div id="hud">
+    <!-- Top Bar -->
+    <header class="hud-header">
+      <div class="brand-box">
+        <div class="logo-glitch" data-text="CYBER//DIMENSION">CYBER//DIMENSION</div>
+        <div class="sub-brand">QUANTUM NEXUS • ENGINE v3.4 [ONLINE]</div>
+      </div>
+
+      <div class="telemetry-box">
+        <div class="telem-item">
+          <span class="label">FPS</span>
+          <span class="value" id="fps-val">60</span>
+        </div>
+        <div class="telem-item">
+          <span class="label">ENTITIES</span>
+          <span class="value" id="particles-val">12,500</span>
+        </div>
+        <div class="telem-item">
+          <span class="label">CORE FREQ</span>
+          <span class="value" id="freq-val">432.8 Hz</span>
+        </div>
+      </div>
+
+      <div class="audio-control-box">
+        <button id="btn-audio" class="hud-btn glow-btn" title="Toggle Procedural Audio">
+          <span class="icon" id="audio-icon">🔇</span>
+          <span class="btn-text" id="audio-text">SOUND: OFF</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Crosshair in Flight Mode -->
+    <div id="reticle" class="reticle hidden">
+      <div class="reticle-circle"></div>
+      <div class="reticle-cross horizontal"></div>
+      <div class="reticle-cross vertical"></div>
+      <div class="reticle-dist" id="target-dist">TARGET LOCK</div>
+    </div>
+
+    <!-- Center Interactive Hint / Splash -->
+    <div id="intro-card" class="intro-card">
+      <div class="badge-pill">INTERACTIVE 3D EXPERIENCE</div>
+      <h1 class="glow-title">QUANTUM NEXUS</h1>
+      <p class="intro-desc">
+        Jelajahi dimensi 3D futuristik. Kendalikan gravitasi kosmik, tembus portal hyperspace neon, atau terbangkan drone penjelajah dengan kecepatan cahaya.
+      </p>
+
+      <div class="action-row">
+        <button id="btn-start" class="btn-launch">
+          <span>INITIALIZE SYSTEM</span>
+          <div class="btn-flare"></div>
+        </button>
+      </div>
+
+      <div class="controls-hint">
+        <span class="key-badge">MOUSE</span> Rotasi Kamera & Gravitasi &bull; 
+        <span class="key-badge">KLIK</span> Ledakan Partikel Shockwave &bull; 
+        <span class="key-badge">SPASI</span> Hyperspace Warp
+      </div>
+    </div>
+
+    <!-- Mode Selector Sidebar -->
+    <aside class="sidebar-modes">
+      <div class="sidebar-title">NAVIGATION MODES</div>
+      <button class="mode-btn active" data-mode="orbit">
+        <span class="mode-num">01</span>
+        <div class="mode-info">
+          <span class="mode-name">ORBITAL NEXUS</span>
+          <span class="mode-sub">Manipulasi Inti & Gravitasi</span>
+        </div>
+      </button>
+      <button class="mode-btn" data-mode="flight">
+        <span class="mode-num">02</span>
+        <div class="mode-info">
+          <span class="mode-name">HYPER FLIGHT</span>
+          <span class="mode-sub">Terbang Melewati Ring Neon</span>
+        </div>
+      </button>
+      <button class="mode-btn" data-mode="synth">
+        <span class="mode-num">03</span>
+        <div class="mode-info">
+          <span class="mode-name">AUDIO MATRIX</span>
+          <span class="mode-sub">Synthesizer Kristal 3D</span>
+        </div>
+      </button>
+
+      <div class="sidebar-divider"></div>
+
+      <!-- Quick Actions -->
+      <div class="sidebar-title">INTERACTIONS</div>
+      <button id="btn-shockwave" class="action-btn">
+        <span class="action-icon">💥</span>
+        <span>SUPERNOVA PULSE</span>
+      </button>
+      <button id="btn-warp" class="action-btn warp-accent">
+        <span class="action-icon">⚡</span>
+        <span>HYPERSPACE WARP</span>
+      </button>
+
+      <div class="sidebar-divider"></div>
+
+      <!-- Theme Switcher -->
+      <div class="sidebar-title">COLOR FREQUENCY</div>
+      <div class="theme-pills">
+        <button class="theme-pill active" data-theme="cyber" style="--c:#00f3ff" title="Cyberpunk"></button>
+        <button class="theme-pill" data-theme="solar" style="--c:#ff9900" title="Solar Flare"></button>
+        <button class="theme-pill" data-theme="hyper" style="--c:#00ff88" title="Hyper Matrix"></button>
+        <button class="theme-pill" data-theme="vapor" style="--c:#ff0099" title="Vaporwave"></button>
+        <button class="theme-pill" data-theme="void" style="--c:#a855f7" title="Deep Void"></button>
+      </div>
+    </aside>
+
+    <!-- Game HUD Overlay (visible in Flight mode) -->
+    <div id="flight-hud" class="flight-hud hidden">
+      <div class="flight-stat">
+        <span class="f-label">RINGS CLEARED</span>
+        <span class="f-val" id="score-val">0</span>
+      </div>
+      <div class="flight-stat">
+        <span class="f-label">VELOCITY</span>
+        <span class="f-val" id="speed-val">420 KM/S</span>
+      </div>
+      <div class="flight-stat">
+        <span class="f-label">BOOST COMBO</span>
+        <span class="f-val highlight" id="combo-val">x1.0</span>
+      </div>
+      <div class="flight-guide">Gunakan <b>W, A, S, D</b> atau <b>Arahkan Mouse</b> untuk bermanuver!</div>
+    </div>
+
+    <!-- Bottom Status Bar -->
+    <footer class="hud-footer">
+      <div class="status-indicator">
+        <div class="pulsing-dot"></div>
+        <span id="system-status">NEXUS SINGULARITY: STABLE & RESONANT</span>
+      </div>
+      <div class="shortcut-reminder">
+        [KLIK OBJEK 3D UNTUK MEMAINKAN NADA HARMONI SINTESIS]
+      </div>
+    </footer>
+  </div>
+
+  <!-- Three.js from Reliable CDNs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- OrbitControls -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  
+  <!-- Custom Audio Synth Engine -->
+  <script src="audio.js"></script>
+  <!-- Main 3D App Engine -->
+  <script src="main.js"></script>
+</body>
+</html>
